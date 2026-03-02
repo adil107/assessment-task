@@ -7,7 +7,11 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import bcrypt from "bcryptjs";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type User = {
   id: string;
@@ -36,34 +40,12 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const USERS_COOKIE_KEY = "app_users";
-const CURRENT_USER_COOKIE_KEY = "current_user_email";
+const USERS_LOCALSTORAGE_KEY = "app_users";
+const LOGIN_USER_LOCALSTORAGE_KEY = "login_user";
 
-const COOKIE_MAX_AGE_DAYS = 7;
-
-const setCookie = (name: string, value: string, days = COOKIE_MAX_AGE_DAYS) => {
-  const expires = new Date();
-  expires.setDate(expires.getDate() + days);
-  document.cookie = `${name}=${encodeURIComponent(
-    value
-  )}; expires=${expires.toUTCString()}; path=/`;
-};
-
-const getCookie = (name: string): string | null => {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${name}=`));
-  return match ? decodeURIComponent(match.split("=")[1]) : null;
-};
-
-const deleteCookie = (name: string) => {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-};
-
-const parseUsersFromCookie = (): StoredUser[] => {
+const parseUsersStorage = () => {
   try {
-    const raw = getCookie(USERS_COOKIE_KEY);
+    const raw = localStorage.getItem(USERS_LOCALSTORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -73,8 +55,20 @@ const parseUsersFromCookie = (): StoredUser[] => {
   }
 };
 
+const parseUser = () => {
+  try {
+    const raw = localStorage.getItem(LOGIN_USER_LOCALSTORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed;
+  } catch {
+    return [];
+  }
+};
+
 const saveUsersToCookie = (users: StoredUser[]) => {
-  setCookie(USERS_COOKIE_KEY, JSON.stringify(users));
+  // setCookie(USERS_LOCALSTORAGE_KEY, JSON.stringify(users))/;
+  localStorage.setItem(USERS_LOCALSTORAGE_KEY, JSON.stringify(users))
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -84,23 +78,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load current user from cookies on mount
+  // // Load current user from cookies on mount
   useEffect(() => {
     const loadUser = () => {
-      const currentEmail = getCookie(CURRENT_USER_COOKIE_KEY);
-      if (!currentEmail) {
-        setLoading(false);
-        return;
-      }
-
-      const users = parseUsersFromCookie();
-      const storedUser = users.find((u) => u.email === currentEmail);
-      if (storedUser) {
-        const { passwordHash, ...safeUser } = storedUser;
-        void passwordHash;
-        setUser(safeUser);
-      }
-      setLoading(false);
+      const user = parseUser()
+      setUser(user??null)
     };
 
     loadUser();
@@ -115,20 +97,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }) => {
       setError(null);
 
-      const users = parseUsersFromCookie();
+      const users = parseUsersStorage();
       const existing = users.find(
-        (u) => u.email.toLowerCase() === payload.email.toLowerCase()
+        (u) => u.email.toLowerCase() === payload.email.toLowerCase(),
       );
-
       if (existing) {
-        setError("User already exists");
-        throw new Error("User already exists");
+        const message = "User already exists";
+        setError(message);
+        toast.error(message);
+        return;
       }
 
       const hashedPassword = await bcrypt.hash(payload.password, 10);
 
       const newUser: StoredUser = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         fname: payload.fname,
         lname: payload.lname,
         email: payload.email,
@@ -137,49 +120,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const updatedUsers = [...users, newUser];
       saveUsersToCookie(updatedUsers);
-      setCookie(CURRENT_USER_COOKIE_KEY, newUser.email);
 
       const { passwordHash: _passwordHash, ...safeUser } = newUser;
       void _passwordHash;
       setUser(safeUser);
     },
-    []
+    [],
   );
 
   const login = useCallback(
     async (payload: { email: string; password: string }) => {
       setError(null);
 
-      const users = parseUsersFromCookie();
+      const users = parseUsersStorage();
       const storedUser = users.find(
-        (u) => u.email.toLowerCase() === payload.email.toLowerCase()
+        (u) => u.email.toLowerCase() === payload.email.toLowerCase(),
       );
 
       if (!storedUser) {
-        setError("Invalid email or password");
-        throw new Error("Invalid email or password");
+        const message = "Invalid email or password";
+        setError(message);
+        toast.error(message);
+        return;
       }
 
       const isMatch = await bcrypt.compare(
         payload.password,
-        storedUser.passwordHash
+        storedUser.passwordHash,
       );
 
       if (!isMatch) {
-        setError("Invalid email or password");
-        throw new Error("Invalid email or password");
+        const message = "Invalid email or password";
+        setError(message);
+        toast.error(message);
+        return;
       }
 
-      setCookie(CURRENT_USER_COOKIE_KEY, storedUser.email);
       const { passwordHash, ...safeUser } = storedUser;
       void passwordHash;
       setUser(safeUser);
     },
-    []
+    [],
   );
 
-  const logout = useCallback(() => {
-    deleteCookie(CURRENT_USER_COOKIE_KEY);
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/remove-cookie", {
+      method: "POST",
+    });
+
     setUser(null);
   }, []);
 
@@ -192,7 +180,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <ToastContainer position="top-right" autoClose={3000} />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextValue => {
@@ -202,4 +195,3 @@ export const useAuth = (): AuthContextValue => {
   }
   return ctx;
 };
-

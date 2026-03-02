@@ -9,6 +9,7 @@ import { PasswordInput } from "@/src/components/PasswordInput";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 
 import { signUpSchema } from "../helper";
+import { useAuth } from "@/src/context/AuthContext";
 
 type SignUpFormValues = {
   firstName: string;
@@ -27,9 +28,17 @@ const SignUpPage = () => {
     resolver: yupResolver(signUpSchema),
   });
 
+  const { signup } = useAuth();
+
   const onSubmit = (data: SignUpFormValues) => {
-    // Replace this with your actual sign-up logic
     console.log("Sign up submitted:", data);
+    const tempData = {
+      fname: data.firstName,
+      lname: data.lastName,
+      email: data.email,
+      password: data.password,
+    };
+    signup(tempData);
   };
 
   return (
@@ -47,7 +56,6 @@ const SignUpPage = () => {
             <TextInput
               label="First name"
               requiredLabel
-              
               placeholder="John"
               {...register("firstName")}
               error={errors.firstName?.message}
