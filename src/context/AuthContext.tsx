@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       password: string;
     }) => {
       setError(null);
-
+      setLoading(true)
       const users = parseUsersStorage();
       const existing = users.find(
         (u) => u.email.toLowerCase() === payload.email.toLowerCase(),
@@ -107,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const message = "User already exists";
         setError(message);
         toast.error(message);
+        setLoading(false)
         return;
       }
 
@@ -124,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       saveUsersToCookie(updatedUsers);
       router.push("/auth/login");
       toast.success('User successfully created')
+      setLoading(false)
     },
     [router],
   );
@@ -131,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = useCallback(
     async (payload: { email: string; password: string }) => {
       setError(null);
-
+      setLoading(true)
       const users = parseUsersStorage();
       const storedUser = users.find(
         (u) => u.email.toLowerCase() === payload.email.toLowerCase(),
@@ -141,6 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const message = "Invalid email or password";
         setError(message);
         toast.error(message);
+        setLoading(false)
         return;
       }
 
@@ -153,19 +156,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const message = "Invalid email or password";
         setError(message);
         toast.error(message);
+        setLoading(false)
         return;
       }
 
       const { passwordHash, ...safeUser } = storedUser;
       void passwordHash;
       setUser(safeUser);
-      console.log(safeUser)
         await fetch("/api/set-cookie", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: uuidv4() }),
       });
       router.push('/')
+      setLoading(false)
     },
     [router],
   );

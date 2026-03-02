@@ -24,7 +24,7 @@ const LoginPage = () => {
     resolver: yupResolver(loginSchema),
   });
 
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
   const onSubmit = (data: LoginFormValues) => {
     login(data);
   };
@@ -63,7 +63,7 @@ const LoginPage = () => {
 
           <PrimaryButton
             type="submit"
-            isLoading={isSubmitting}
+            isLoading={isSubmitting || loading}
             className="cursor-pointer"
           >
             Login

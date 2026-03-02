@@ -28,10 +28,9 @@ const SignUpPage = () => {
     resolver: yupResolver(signUpSchema),
   });
 
-  const { signup } = useAuth();
+  const { signup, loading } = useAuth();
 
   const onSubmit = (data: SignUpFormValues) => {
-    console.log("Sign up submitted:", data);
     const tempData = {
       fname: data.firstName,
       lname: data.lastName,
@@ -95,7 +94,11 @@ const SignUpPage = () => {
             error={errors.confirmPassword?.message}
           />
 
-          <PrimaryButton type="submit" className="cursor-pointer" isLoading={isSubmitting}>
+          <PrimaryButton
+            type="submit"
+            className="cursor-pointer"
+            isLoading={isSubmitting || loading}
+          >
             Create account
           </PrimaryButton>
 
