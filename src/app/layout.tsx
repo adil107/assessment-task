@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <div className="flex min-h-screen flex-col">
           <AuthProvider>
-            <Header userName="John Doe" />
+            <Header />
             <main className="flex-1 bg-slate-50">{children}</main>
             <Footer />
           </AuthProvider>

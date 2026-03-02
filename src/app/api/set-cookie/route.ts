@@ -12,6 +12,8 @@ export async function POST(req: Request) {
   // Use secure only in production (HTTPS), allow in development (HTTP)
   const isProduction = process.env.NODE_ENV === 'production';
 
+  console.log(token)
+
   
   res.cookies.set('accessToken', token, {
     httpOnly: true,

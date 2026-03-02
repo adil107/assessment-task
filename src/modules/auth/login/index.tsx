@@ -8,6 +8,7 @@ import { TextInput } from "@/src/components/TextInput";
 import { PasswordInput } from "@/src/components/PasswordInput";
 import { PrimaryButton } from "@/src/components/PrimaryButton";
 import { loginSchema } from "../helper";
+import { useAuth } from "@/src/context/AuthContext";
 
 type LoginFormValues = {
   email: string;
@@ -23,10 +24,12 @@ const LoginPage = () => {
     resolver: yupResolver(loginSchema),
   });
 
+  const { login } = useAuth();
   const onSubmit = (data: LoginFormValues) => {
-    // Replace this with your actual login logic
-    console.log("Form submitted:", data);
+    login(data);
   };
+
+  // console.log(isSubmitting)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-blue-100 px-4">

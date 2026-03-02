@@ -95,7 +95,7 @@ const SignUpPage = () => {
             error={errors.confirmPassword?.message}
           />
 
-          <PrimaryButton type="submit" isLoading={isSubmitting}>
+          <PrimaryButton type="submit" className="cursor-pointer" isLoading={isSubmitting}>
             Create account
           </PrimaryButton>
 

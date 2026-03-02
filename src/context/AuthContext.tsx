@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRouter } from "next/navigation";
 
 type User = {
   id: string;
@@ -68,7 +69,7 @@ const parseUser = () => {
 
 const saveUsersToCookie = (users: StoredUser[]) => {
   // setCookie(USERS_LOCALSTORAGE_KEY, JSON.stringify(users))/;
-  localStorage.setItem(USERS_LOCALSTORAGE_KEY, JSON.stringify(users))
+  localStorage.setItem(USERS_LOCALSTORAGE_KEY, JSON.stringify(users));
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -77,12 +78,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // // Load current user from cookies on mount
   useEffect(() => {
     const loadUser = () => {
-      const user = parseUser()
-      setUser(user??null)
+      const user = parseUser();
+      setUser(user ?? null);
     };
 
     loadUser();
@@ -120,12 +122,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const updatedUsers = [...users, newUser];
       saveUsersToCookie(updatedUsers);
-
-      const { passwordHash: _passwordHash, ...safeUser } = newUser;
-      void _passwordHash;
-      setUser(safeUser);
+      router.push("/auth/login");
+      toast.success('User successfully created')
     },
-    [],
+    [router],
   );
 
   const login = useCallback(
@@ -159,17 +159,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { passwordHash, ...safeUser } = storedUser;
       void passwordHash;
       setUser(safeUser);
+      console.log(safeUser)
+        await fetch("/api/set-cookie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: uuidv4() }),
+      });
+      router.push('/')
     },
-    [],
+    [router],
   );
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/remove-cookie", {
+    await fetch("/api/remove-cookie", {
       method: "POST",
     });
-
-    setUser(null);
-  }, []);
+    localStorage.removeItem(LOGIN_USER_LOCALSTORAGE_KEY)
+    router.push('/auth/login')
+  }, [router]);
 
   const value: AuthContextValue = {
     user,

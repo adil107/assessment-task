@@ -13,7 +13,6 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   ...rest
 }) => {
   const isDisabled = disabled || isLoading;
-
   return (
     <button
       type={rest.type || "button"}

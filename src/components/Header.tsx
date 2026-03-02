@@ -2,29 +2,21 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
-type HeaderProps = {
-  userName: string;
-  onLogout?: () => void;
-};
-
-export const Header: React.FC<HeaderProps> = ({ userName, onLogout }) => {
+export const Header: React.FC = () => {
   const pathname = usePathname();
+  const { logout, user } = useAuth();
 
-  // Hide header on auth pages
+  const handleLogout = () => {
+    logout();
+  };
+
   if (pathname.startsWith("/auth")) {
     return null;
   }
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      // Fallback: just log for now
-      console.log("Logout clicked");
-    }
-  };
-
+  const fullName = `${user?.fname} ${user?.lname}`;
   return (
     <header className="w-full border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
@@ -35,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({ userName, onLogout }) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#171717]">Hi, {userName}</span>
+          <span className="text-xs text-[#171717]">Hi, {fullName}</span>
           <button
             type="button"
             onClick={handleLogout}
