@@ -17,15 +17,15 @@ type DataTableProps<T extends Record<string, unknown>> = {
   columns: Column<T>[];
   itemsPerPage?: number;
   total?: number;
-  setPage: React.Dispatch<React.SetStateAction<number>>
+  setPage: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   itemsPerPage = 10,
-  total=0,
-  setPage
+  total = 0,
+  setPage,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(0);
   const [sortKey, setSortKey] = useState<keyof T | null>(null);
@@ -56,7 +56,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setPage(page)
+    setPage(page);
   };
 
   const handleSort = (key: keyof T, sortable?: boolean) => {
@@ -69,8 +69,6 @@ export function DataTable<T extends Record<string, unknown>>({
       setSortDirection("asc");
     }
   };
-
-  
 
   return (
     <div className="w-full overflow-x-auto">
@@ -159,4 +157,3 @@ export function DataTable<T extends Record<string, unknown>>({
     </div>
   );
 }
-

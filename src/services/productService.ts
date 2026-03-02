@@ -13,6 +13,7 @@ export async function getProductList(
   page: number,
   limit: number,
   search: string,
+  signal?: AbortSignal,
 ): Promise<{ data?: I_ProductResponse; status: boolean }> {
   const skip = (page - 1) * limit;
 
@@ -23,12 +24,18 @@ export async function getProductList(
         skip,
         ...(search && { q: search }),
       },
+      signal,
     });
 
     // console.log(data);
     return { data:data, status: true };
-  } catch (error:any) {
-    console.error(error)
-    return { status: false};
+  } catch (error: any) {
+    // Ignore cancellations triggered by AbortController
+    if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+      return { status: false };
+    }
+
+    console.error(error);
+    return { status: false };
   }
 }

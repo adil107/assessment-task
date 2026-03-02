@@ -16,20 +16,28 @@ const useFetchProducts = () => {
   const debouncedSearch = useDebounce(searchQuery, 500);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const handleGetProducts = async () => {
       const { data, status } = await getProductList(
-        page+1,
+        page + 1,
         limit,
         debouncedSearch,
+        controller.signal,
       );
-    //   console.log(status)
+
       if (status) {
         setData(data?.products ?? []);
         setTotal(data?.total ?? 0);
       }
       setLoading(false);
     };
+
     handleGetProducts();
+
+    return () => {
+      controller.abort();
+    };
   }, [debouncedSearch, page, limit]);
 
   return {
