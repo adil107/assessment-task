@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
     return null;
   }
 
-  const fullName = `${user?.fname} ${user?.lname}`;
+  const fullName = `${user?.fname||''} ${user?.lname||''}`;
   return (
     <header className="w-full border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
