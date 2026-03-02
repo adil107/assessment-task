@@ -2,31 +2,19 @@
 
 import React from "react";
 import { DataTable, Column } from "@/src/components/DataTable";
+import useFetchProducts from "./hook/useFetchProducts";
 
 type Product = {
   id: number;
-  name: string;
-  category: string;
+  title: string;
   price: number;
-  stock: number;
+  brand: string;
+  category: string;
 };
-
-const mockProducts: Product[] = [
-  { id: 1, name: "Wireless Headphones", category: "Electronics", price: 89.99, stock: 24 },
-  { id: 2, name: "Running Shoes", category: "Sports", price: 59.99, stock: 12 },
-  { id: 3, name: "Coffee Maker", category: "Home", price: 39.99, stock: 8 },
-  { id: 4, name: "Smart Watch", category: "Electronics", price: 129.99, stock: 15 },
-  { id: 5, name: "Office Chair", category: "Furniture", price: 199.99, stock: 5 },
-  { id: 6, name: "Desk Lamp", category: "Home", price: 24.99, stock: 30 },
-  { id: 7, name: "Backpack", category: "Accessories", price: 34.99, stock: 18 },
-  { id: 8, name: "Bluetooth Speaker", category: "Electronics", price: 49.99, stock: 22 },
-  { id: 9, name: "Yoga Mat", category: "Sports", price: 19.99, stock: 40 },
-  { id: 10, name: "Water Bottle", category: "Accessories", price: 14.99, stock: 50 },
-];
 
 const columns: Column<Product>[] = [
   { key: "id", header: "ID", sortable: true },
-  { key: "name", header: "Product", sortable: true },
+  { key: "title", header: "Product Name", sortable: true },
   { key: "category", header: "Category", sortable: true },
   {
     key: "price",
@@ -34,26 +22,48 @@ const columns: Column<Product>[] = [
     sortable: true,
     render: (value) => <span>${Number(value).toFixed(2)}</span>,
   },
-  { key: "stock", header: "In stock", sortable: true },
 ];
 
 const ProductsPage = () => {
+  const {
+    data,
+    limit,
+    setPage,
+    total,
+    setSearchQuery,
+    searchQuery,
+  } = useFetchProducts();
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto w-full max-w-5xl space-y-6">
-        <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[#171717]">Products</h1>
             <p className="text-sm text-slate-500">
               Browse and manage your product catalog.
             </p>
           </div>
+
+          <div className="w-full max-w-xs">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Search products
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, category..."
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </header>
 
         <DataTable
-          data={mockProducts}
+          data={data}
           columns={columns}
-          itemsPerPage={5}
+          itemsPerPage={limit}
+          total={total}
+          setPage={setPage}
         />
       </div>
     </div>

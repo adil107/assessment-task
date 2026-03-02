@@ -59,17 +59,20 @@ const parseUsersStorage = () => {
 const parseUser = () => {
   try {
     const raw = localStorage.getItem(LOGIN_USER_LOCALSTORAGE_KEY);
+    console.log(raw)
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return parsed;
   } catch {
-    return [];
+    return null;
   }
 };
 
-const saveUsersToCookie = (users: StoredUser[]) => {
-  // setCookie(USERS_LOCALSTORAGE_KEY, JSON.stringify(users))/;
+const saveUsersToLocalStorage = (users: StoredUser[]) => {
   localStorage.setItem(USERS_LOCALSTORAGE_KEY, JSON.stringify(users));
+};
+const saveUserToLocalStorage = (users: StoredUser[]) => {
+  localStorage.setItem(LOGIN_USER_LOCALSTORAGE_KEY, JSON.stringify(users));
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -122,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       };
 
       const updatedUsers = [...users, newUser];
-      saveUsersToCookie(updatedUsers);
+      saveUsersToLocalStorage(updatedUsers);
       router.push("/auth/login");
       toast.success('User successfully created')
       setLoading(false)
@@ -168,6 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: uuidv4() }),
       });
+      saveUserToLocalStorage(safeUser)
+
       router.push('/')
       setLoading(false)
     },

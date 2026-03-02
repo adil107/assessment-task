@@ -16,12 +16,16 @@ type DataTableProps<T extends Record<string, unknown>> = {
   data: T[];
   columns: Column<T>[];
   itemsPerPage?: number;
+  total?: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>
 };
 
 export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
-  itemsPerPage = 5,
+  itemsPerPage = 10,
+  total=0,
+  setPage
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(0);
   const [sortKey, setSortKey] = useState<keyof T | null>(null);
@@ -48,10 +52,11 @@ export function DataTable<T extends Record<string, unknown>>({
     return sorted;
   }, [data, sortKey, sortDirection]);
 
-  const pageCount = Math.max(1, Math.ceil(sortedData.length / itemsPerPage));
+  const pageCount = Math.max(1, Math.ceil(total / itemsPerPage));
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setPage(page)
   };
 
   const handleSort = (key: keyof T, sortable?: boolean) => {
@@ -65,8 +70,7 @@ export function DataTable<T extends Record<string, unknown>>({
     }
   };
 
-  const startIndex = currentPage * itemsPerPage;
-  const currentItems = sortedData.slice(startIndex, startIndex + itemsPerPage);
+  
 
   return (
     <div className="w-full overflow-x-auto">
@@ -104,7 +108,7 @@ export function DataTable<T extends Record<string, unknown>>({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white text-sm">
-              {currentItems.length === 0 ? (
+              {sortedData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={columns.length}
@@ -114,7 +118,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   </td>
                 </tr>
               ) : (
-                currentItems.map((row, rowIndex) => (
+                sortedData.map((row, rowIndex) => (
                   <tr
                     key={rowIndex}
                     className="hover:bg-slate-50 transition-colors"
