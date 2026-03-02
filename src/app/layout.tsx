@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/src/components/Header";
 import { Footer } from "@/src/components/Footer";
 import { AuthProvider } from "../context/AuthContext";
+import HolyLoader from "holy-loader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,13 +31,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex min-h-screen flex-col">
-          <AuthProvider>
-            <Header />
-            <main className="flex-1 bg-slate-50">{children}</main>
-            <Footer />
-          </AuthProvider>
-        </div>
+        <HolyLoader
+          color="lab(44.0605% 29.0279 -86.0352)"
+          height={4}
+          showSpinner={false}
+          initialPosition={0.1}
+          speed={300}
+          easing="ease"
+        />
+          <div className="flex min-h-screen flex-col">
+            <AuthProvider>
+              <Header />
+              <main className="flex-1 bg-slate-50">{children}</main>
+              <Footer />
+            </AuthProvider>
+          </div>
       </body>
     </html>
   );
