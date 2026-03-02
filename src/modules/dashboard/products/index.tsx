@@ -27,11 +27,13 @@ const columns: Column<Product>[] = [
 const ProductsPage = () => {
   const {
     data,
+    page,
     limit,
-    setPage,
     total,
-    setSearchQuery,
+    loading,
     searchQuery,
+    setPage,
+    setSearchQuery,
   } = useFetchProducts();
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8">
@@ -51,8 +53,11 @@ const ProductsPage = () => {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, category..."
+              onChange={(e) => {
+                setPage(0)
+                setSearchQuery(e.target.value)
+              }}
+              placeholder="Search by name..."
               className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -60,10 +65,12 @@ const ProductsPage = () => {
 
         <DataTable
           data={data}
-          columns={columns}
-          itemsPerPage={limit}
+          page={page}
           total={total}
+          columns={columns}
           setPage={setPage}
+          loading={loading}
+          itemsPerPage={limit}
         />
       </div>
     </div>

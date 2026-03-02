@@ -17,7 +17,9 @@ type DataTableProps<T extends Record<string, unknown>> = {
   columns: Column<T>[];
   itemsPerPage?: number;
   total?: number;
+  page: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
+  loading?: boolean;
 };
 
 export function DataTable<T extends Record<string, unknown>>({
@@ -26,8 +28,9 @@ export function DataTable<T extends Record<string, unknown>>({
   itemsPerPage = 10,
   total = 0,
   setPage,
+  page=0,
+  loading = false,
 }: DataTableProps<T>) {
-  const [currentPage, setCurrentPage] = useState(0);
   const [sortKey, setSortKey] = useState<keyof T | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
@@ -55,13 +58,11 @@ export function DataTable<T extends Record<string, unknown>>({
   const pageCount = Math.max(1, Math.ceil(total / itemsPerPage));
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
     setPage(page);
   };
 
   const handleSort = (key: keyof T, sortable?: boolean) => {
     if (!sortable) return;
-    setCurrentPage(0);
     if (sortKey === key) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -106,7 +107,19 @@ export function DataTable<T extends Record<string, unknown>>({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white text-sm">
-              {sortedData.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-4 py-8 text-center text-sm text-slate-400"
+                  >
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                      <span>Loading data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : sortedData.length === 0 ? (
                 <tr>
                   <td
                     colSpan={columns.length}
@@ -145,11 +158,11 @@ export function DataTable<T extends Record<string, unknown>>({
 
         <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
           <p className="text-xs text-slate-500">
-            Page {currentPage + 1} of {pageCount}
+            Page {page + 1} of {pageCount}
           </p>
           <Pagination
             pageCount={pageCount}
-            currentPage={currentPage}
+            currentPage={page}
             onPageChange={handlePageChange}
           />
         </div>
